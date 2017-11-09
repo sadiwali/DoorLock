@@ -53,7 +53,7 @@ class LcdThread(threading.Thread):
     def run(self):
         while True:
             if (not self.inQueue.empty()):
-                data = self.messagingQueue.get()
+                data = self.inQueue.get()
                 self._write_message(data)
 
     def _update_osd(self, overlay):

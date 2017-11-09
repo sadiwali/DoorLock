@@ -7,7 +7,7 @@ from Adafruit_CharLCD import Adafruit_CharLCD
 
 
 
-class Lcd(threading.Thread):
+class LcdThread(threading.Thread):
 
     lcd = None # this is the lcd to set
     PIN_BLT = None # backlight pin
@@ -17,10 +17,13 @@ class Lcd(threading.Thread):
     prev_type = -1
     curr_screen = []
 
-    def __init__(self, messageQueue):
+    def __init__(self, queues):
         ''' Initialize the LCD display '''
         threading.Thread.__init__(self, name="LCD")
-        self.messagingQueue = messageQueue
+
+        self.inQueue = queues[0]
+        self.outQueue = queues[1]
+
         # LCD PINS
         self.PIN_RS = 26 # RS pin of LCD
         self.PIN_E = 19 # enable pin of LCD
@@ -51,12 +54,7 @@ class Lcd(threading.Thread):
         while True:
             if (not self.messagingQueue.empty()):
                 data = self.messagingQueue.get()
-                if ("R_LCD_" in data):
-                    # for reading
-                    self.write_message(data[5:])
-                else:
-                    # not for reading
-                    self.messagingQueue.put(data)
+                self._write_message(data)
 
     def _update_osd(self, overlay):
         ''' update the screen with new overlays.
@@ -144,14 +142,14 @@ class Lcd(threading.Thread):
         return full_scroll_arr
 
 
-    def clear(self):
+    def _clear(self):
         ''' clear the lcd '''
         self.lcd.clear()
         # clear screen in memory
         for i in range(self.col * self.row):
             self.curr_screen[i] = " "
 
-    def write_message(self, message):
+    def _write_message(self, message):
         message_layers = self._new_message_scroll(message, 10)
         for i in range(len(message_layers)):
             osd_layer = self._create_osd_layer(message_layers[i], 1)

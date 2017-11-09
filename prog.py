@@ -1,5 +1,5 @@
 
-from Locker import Lock
+from Lcd import LcdThread
 from Const import *
 import threading
 import time
@@ -13,7 +13,14 @@ def inp(q):
         if (uInp != ""):
             q.put(uInp)
 
-l = Lock()
+
+inQueue = queue.Queue()
+outQueue = queue.Queue()
+qL = [outQueue, inQueue]
+
+lcd = LcdThread(qL)
+lcd.start()
+
 
 
 a = threading.Thread(target=inp, args=(inpQueue,))
@@ -24,12 +31,8 @@ while True:
 
     if (not inpQueue.empty()):
         data = inpQueue.get()
+        outQueue.put(data)
         
-        if (data == "lock"):
-            l.lock()
-        elif (data == "unlock"):
-            l.unlock()
-        elif (data == "lockstats"):
-            print(l.isLocked())
+
 print("program ends")
 

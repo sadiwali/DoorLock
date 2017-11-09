@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">CircleBot</string>
+    <color name="white">#ffffff</color>
+
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disonnect</string>
+    <string name="more">More</string>
+    <string name="title_activity_nav_drawer">NavDrawer</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+</resources>

@@ -52,7 +52,7 @@ class LcdThread(threading.Thread):
 
     def run(self):
         while True:
-            if (not self.messagingQueue.empty()):
+            if (not self.inQueue.empty()):
                 data = self.messagingQueue.get()
                 self._write_message(data)
 

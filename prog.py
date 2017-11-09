@@ -1,6 +1,6 @@
 
-from Lcd import LcdThread
-from Const import *
+from .Interfacers.Lcd import LcdThread
+from .Constants.Const import *
 import threading
 import time
 import queue

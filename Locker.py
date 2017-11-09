@@ -4,7 +4,7 @@ This class enables the programmer to interface with the _lockThread mechanism (s
 import threading
 import queue
 import time
-from Const import *
+from Constants.Const import *
 
 
 class _lockThread(threading.Thread):

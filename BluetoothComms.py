@@ -4,20 +4,22 @@ import os
 import glob
 import time
 from bluetooth import *
-import multiprocessing
+from multiprocessing import Process
+from multiprocessing import Queue
 import threading
 import logging
 import queue
 #os.system('modprobe w1-gpio')
 #os.system('modprobe w1-therm')
 
-class BComms(threading.Thread):
+class btThread(Process):
 
 
-    def __init__(self, msgQueue):
-        threading.Thread.__init__(self, name="BT")
+    def __init__(self, queues):
+        Process.__init__(self, name="BT")
       
-        self.messagingQueue = msgQueue # master queue
+        self.inQueue = queues[0] # reads from this queue
+        self.outQueue = queues[1] # writes to this queue
 
         self.server_sock = BluetoothSocket(RFCOMM)
         self.server_sock.bind(("", PORT_ANY))
@@ -38,50 +40,48 @@ class BComms(threading.Thread):
         print("Accepted connection from " + str(self.client_info))
         self.messagingQueue.put("BTCONNECTED")
 
+    def _listenInp(self):
 
-    def send_message(self, msg):
+        while True:
+            print("waiting...")
+
+            try:
+                data = self.client_sock.recv(1024)
+                data = data.decode("utf-8")
+
+                if len(data) == 0:
+                    print('zero len data')
+                    break
+                print("received: " + str(data))
+                self.messagingQueue.put(str(data))
+
+                msgToSend = "relay: " + data
+                self._send_message(msgToSend)
+
+                print("sending: " + msgToSend)
+
+            except IOError:
+                print("Disconnected");
+                break
+            except KeyboardInterrupt:
+                print("disconnected")
+                self.client_sock.close()
+                self.server_sock.close()
+                print("all done")
+                break
+            except:
+                self.client_sock.close()
+                self.server_sock.close()
+                break
+        print("bt thread ends")
+        return
+
+    def _send_message(self, msg):
         self.client_sock.send(str.encode(msg))
 
     def run(self):
 
-        while True:
-            # process any commands available
-            if (not self.messagingQueue.empty()):
-                #self._process_command(self.messagingQueue.get())
-                pass
-            else:
-                print("waiting...")
-
-                try:
-                    data = self.client_sock.recv(1024)
-                    data = data.decode("utf-8")
-
-                    if len(data) == 0:
-                        print('zero len data')
-                        break
-                    print("received: " + str(data))
-                    self.messagingQueue.put(str(data))
-
-                    msgToSend = "relay: " + data
-                    self.send_message(msgToSend)
-
-                    print("sending: " + msgToSend)
-
-                except IOError:
-                    print("Disconnected");
-                    break
-                except KeyboardInterrupt:
-                    print("disconnected")
-                    self.client_sock.close()
-                    self.server_sock.close()
-                    print("all done")
-                    break
-                except:
-                    self.client_sock.close()
-                    self.server_sock.close()
-                    break
-        print("bt thread ends")
-        return
+       
 
     def _process_command(self, cmd):
         if ("R_BT_" in cmd):
@@ -90,3 +90,8 @@ class BComms(threading.Thread):
             self.messagingQueue.put(cmd)
         
         print("command is " + cmd)
+
+
+class BComm():
+    def __init__(self):
+

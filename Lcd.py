@@ -63,6 +63,7 @@ class LcdThread(Process):
             data = self.inQueue.get()
             t = threading.Thread(target=self._write_message, args=(data,))
             t.start()
+            print("looping LCD")
 
     def _update_osd(self, overlay):
         ''' update the screen with new overlays.

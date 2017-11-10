@@ -53,10 +53,11 @@ class _lockThread(threading.Thread):
 
     def _moveServoThread(self: '_lockThread', percentage: 'int') -> None:
         ''' Move the servo do a certain angle '''
-        dbug(PARCEL, ">moving... " + str(percentage))
+        dbug(PARCEL, ">moving... " + str(percentage) + " wait...")
         self.p.start(percentage)
-        time.sleep(1)
-        dbug(PARCEL, ">done moving.")
+        time.sleep(2)
+
+        dbug(PARCEL, "done moving, ready for lock/unlock")
         return
 
     def _moveServo(self: '_lockThread', percentage: 'int') -> None:
@@ -75,8 +76,7 @@ class _lockThread(threading.Thread):
             self._moveServo(12.5)
             self._write_back(ST_UNLOCKED)
             self.locked = False
-            self.p.stop()
-            t = threading.Thread(target=self._auto_lock_subroutine, args=(10, self.inQueue,))
+            t = threading.Thread(target=self._auto_lock_subroutine, args=(5, self.inQueue,))
             t.start()
         else:
             dbug(PARCEL, "already unlocked")
@@ -88,7 +88,6 @@ class _lockThread(threading.Thread):
             self._moveServo(2.5)
             self._write_back(ST_LOCKED)
             self.locked = True
-            self.p.stop()
 
         else:
             dbug(PARCEL, "already locked")

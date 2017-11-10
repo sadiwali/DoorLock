@@ -4,27 +4,46 @@ This class enables the programmer to interface with the _lockThread mechanism (s
 import threading
 import queue
 import time
-from Constants.Const import *
+import RPi.GPIO as GPIO
+from Const import *
+from multiprocessing import Process
+from dbug import *
 
+PARCEL = [True, "LOCKER"]
 
 class _lockThread(threading.Thread):
     ''' This is the thread on which the lock lives '''
     def __init__(self, queues):
         threading.Thread.__init__(self)
+        dbug(PARCEL, "lockThread initializing")
+        # set up GPIO
+        self.servoPin = 21
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.servoPin, GPIO.OUT)
+        self.p = GPIO.PWM(self.servoPin, 50)
+        self.locked = False
+        self.servoMovementThread = None
 
+        self.cancelled = False
+        
         self.inQueue = queues[0] # reading from queue
         self.outQueue = queues[1] # writing queue
-        self._lock() # locked by default
+
+        self._lock()
 
     def run(self):
-        while True:
-            if (not self.inQueue.empty()):
-                # process a command
-                self._process_cmd(self.inQueue.get())
 
+        while True and not self.cancelled:
+
+            data = self.inQueue.get()
+            # process a command
+            self._process_cmd(data)
+
+
+        dbug(PARCEL, "lock thread finished")
         return           
 
-    def _auto_lock(self: '_lockThread', sleepTime: 'int', inQueue: 'Queue') -> None:
+    def _auto_lock_subroutine(self: '_lockThread', sleepTime: 'int', inQueue: 'Queue') -> None:
         ''' Wait sleepTime amount of time, then send a signal to parent thread (_lockThread) using the inQueue
         that time has passed 
         '''
@@ -32,17 +51,48 @@ class _lockThread(threading.Thread):
         inQueue.put(AUTO_LOCK) # signal to the locker thread, autolocker has waited time for auto _lockThread
         return
 
+    def _moveServoThread(self: '_lockThread', percentage: 'int') -> None:
+        ''' Move the servo do a certain angle '''
+        dbug(PARCEL, ">moving... " + str(percentage))
+        self.p.start(percentage)
+        time.sleep(1)
+        dbug(PARCEL, ">done moving.")
+        return
+
+    def _moveServo(self: '_lockThread', percentage: 'int') -> None:
+        # halt until servo movement completed
+        while self.servoMovementThread != None and self.servoMovementThread.isAlive():
+            dbug(PARCEL, "blocking")
+            pass
+    
+        self.servoMovementThread = threading.Thread(target=self._moveServoThread, args=(percentage,))
+        self.servoMovementThread.start()
+
     def _unlock(self: '_lockThread') -> None:
         # unlock
-        print("unlocked")
-        self._write_back(ST_UNLOCKED)
-        t = threading.Thread(target=self._auto_lock, args=(5, self.inQueue,))
-        t.start()
+        if (self.locked):
+            dbug(PARCEL, "unlocked")
+            self._moveServo(12.5)
+            self._write_back(ST_UNLOCKED)
+            self.locked = False
+            self.p.stop()
+            t = threading.Thread(target=self._auto_lock_subroutine, args=(10, self.inQueue,))
+            t.start()
+        else:
+            dbug(PARCEL, "already unlocked")
 
     def _lock(self):
         # lock
-        print("locked")
-        self._write_back(ST_LOCKED)
+        if (not self.locked):
+            dbug(PARCEL, "locked")
+            self._moveServo(2.5)
+            self._write_back(ST_LOCKED)
+            self.locked = True
+            self.p.stop()
+
+        else:
+            dbug(PARCEL, "already locked")
+
 
     def _write_back(self: '_lockThread', msg: 'str') -> None:
         self.outQueue.put(msg)     
@@ -76,38 +126,37 @@ class Lock():
         self.locked = False
         # check for lock status in a separate thread
         a = threading.Thread(target=self._keepSync)
+
         a.start()
 
     def _startLockThread(self: 'Lock') -> None:
         ''' Start the lock thread '''
+        dbug(PARCEL, "starting lock thread")
         self.lThread = _lockThread(self._qL)
+        self.lThread.daemon = True
         self.lThread.start() # start the _lockThread thread
 
     def _keepSync(self: 'Lock') -> None:
         ''' Keep the variables in sync by listening to the input queue. '''
 
         while True:
-            # ensure the lock thread is alive
-            if (not self.lThread.isAlive()):
-                self._startLockThread()
-                print("started lock thread...")
-
-            if (not self._inQueue.empty()):
-                # read queue data
-                data = self._inQueue.get()
-                if (data == ST_LOCKED):
-                    self.locked = True
-                elif (data == ST_UNLOCKED):
-                    self.locked = False
+        
+            # read queue data
+            data = self._inQueue.get()
+            if (data == ST_LOCKED):
+                self.locked = True
+            elif (data == ST_UNLOCKED):
+                self.locked = False
 
     def lock(self: 'Lock') -> None:
         ''' Lock the lock '''
         self._outQueue.put(DO_LOCK)
+        return
 
     def unlock(self: 'Lock') -> None:
         ''' Unlock the lock '''
         self._outQueue.put(DO_UNLOCK)
-
+        return
     def isLocked(self: 'Lock') -> bool:
         ''' Return True if locked, false otherwise. '''
         return self.locked

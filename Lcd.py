@@ -1,13 +1,17 @@
 import RPi.GPIO as GPIO
 import time
-import queue
+#import queue
 import threading
 from copy import deepcopy
 from Adafruit_CharLCD import Adafruit_CharLCD
+from multiprocessing import Process
+from multiprocessing import Queue
 
+# debugging
+from dbug import *
+PARCEL = [True, "LCD"]
 
-
-class LcdThread(threading.Thread):
+class LcdThread(Process):
 
     lcd = None # this is the lcd to set
     PIN_BLT = None # backlight pin
@@ -19,10 +23,14 @@ class LcdThread(threading.Thread):
 
     def __init__(self, queues):
         ''' Initialize the LCD display '''
-        threading.Thread.__init__(self, name="LCD")
+        Process.__init__(self, name="LCD")
 
         self.inQueue = queues[0]
         self.outQueue = queues[1]
+
+   
+  
+
 
         # LCD PINS
         self.PIN_RS = 26 # RS pin of LCD
@@ -52,15 +60,14 @@ class LcdThread(threading.Thread):
 
     def run(self):
         while True:
-            if (not self.inQueue.empty()):
-                data = self.inQueue.get()
-                self._write_message(data)
+            data = self.inQueue.get()
+            t = threading.Thread(target=self._write_message, args=(data,))
+            t.start()
 
     def _update_osd(self, overlay):
         ''' update the screen with new overlays.
         For scrolling text, call multiple times with given data.
         '''
-        print(str(len(overlay)))
         # only update 
         for i in range(len(overlay)):
             if self.curr_screen[i] != overlay[i]:
@@ -81,7 +88,7 @@ class LcdThread(threading.Thread):
 
         if dType == 1:
             # 10 character message
-            print(str(len(new_screen))+ " and " + str(len(data)))
+            dbug(PARCEL, str(len(new_screen))+ " and " + str(len(data)))
             for i in range(len(data)):
                 new_screen[i] = data[i]
 
@@ -152,6 +159,10 @@ class LcdThread(threading.Thread):
     def _write_message(self, message):
         message_layers = self._new_message_scroll(message, 10)
         for i in range(len(message_layers)):
+            start = time.time()
             osd_layer = self._create_osd_layer(message_layers[i], 1)
             self._update_osd(osd_layer) # display on screen
+            dbug(PARCEL, time.time() - start)
             time.sleep(0.5)
+        dbug(PARCEL, "---------------------------------")
+        return

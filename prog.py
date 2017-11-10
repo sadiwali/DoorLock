@@ -1,11 +1,14 @@
 
-from .Interfacers.Lcd import LcdThread
-from .Constants.Const import *
+from Lcd import LcdThread
+from Locker import Lock
+from Const import *
 import threading
 import time
 import queue
+from multiprocessing import Queue
 
-inpQueue = queue.Queue()
+
+inpQueue = queue.Queue() # not multiprocessing queue
 def inp(q):
     while True:
         print("enter input:")
@@ -14,8 +17,9 @@ def inp(q):
             q.put(uInp)
 
 
-inQueue = queue.Queue()
-outQueue = queue.Queue()
+
+inQueue = Queue()
+outQueue = Queue()
 qL = [outQueue, inQueue]
 
 lcd = LcdThread(qL)
@@ -24,14 +28,29 @@ lcd.start()
 
 
 a = threading.Thread(target=inp, args=(inpQueue,))
+a.daemon = True
 a.start()
+
+locker = Lock()
+
+
 
 print("main thread loop starts")
 while True:   
 
-    if (not inpQueue.empty()):
-        data = inpQueue.get()
+
+    data = inpQueue.get()
+    if (data == 'lock'):
+        locker.lock()
+        pass    
+    elif (data == 'unlock'):
+        locker.unlock()
+        pass
+    else:
+        # print to lcd
         outQueue.put(data)
+
+
         
 
 print("program ends")

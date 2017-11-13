@@ -1,6 +1,5 @@
 import RPi.GPIO as GPIO
 import time
-#import queue
 import threading
 from copy import deepcopy
 from Adafruit_CharLCD import Adafruit_CharLCD
@@ -11,26 +10,47 @@ from multiprocessing import Queue
 from dbug import *
 PARCEL = [True, "LCD"]
 
-class LcdThread(Process):
+class LcdObj():
+    ''' The wrapper class which wraps the LCD display process '''
+    def __init__(self: 'LcdObj') -> None:
+        ''' Initialize the LCD process, and keep it alive '''
+        self.inQueue = Queue() # reading from
+        self.outQueue = Queue() # writing to
+        self._qL = [self.outQueue, self.inQueue]
+        self._procLcd = None
 
-    lcd = None # this is the lcd to set
-    PIN_BLT = None # backlight pin
-    col = 0
-    row = 0
+        # start the sync thread
+        syncThread = threadng.Thread(target=self._keepSync)
+        syncThread.start()
 
-    prev_type = -1
-    curr_screen = []
+    def _startLcdProc(self):
+        ''' Start the process if does not exist, or dead '''
+        if (self._procLcd == None or not self._procLcd.is_alive()):
+            # if first time load, or process is dead
+            self._procLcd = _LcdProc(self._qL)
+            self._procLcd.start()
 
+    def _keepSync(self):
+        ''' Keep the thread in sync '''
+        while True:
+            # check messages from Lcd process
+            data = self.inQueue.get()
+            print("LCD sent: " + str(data))
+            # LCD should not send back data
+
+    def write(self, data: 'str') -> None:
+        ''' Write a message to the LCD screen '''
+        self.outQueue.put(data)
+
+
+class _LcdProc(Process):
+    ''' The process which manages the LCD output. '''
     def __init__(self, queues):
         ''' Initialize the LCD display '''
         Process.__init__(self, name="LCD")
 
-        self.inQueue = queues[0]
-        self.outQueue = queues[1]
-
-   
-  
-
+        self.inQueue = queues[0] # to read from
+        self.outQueue = queues[1] # to write to
 
         # LCD PINS
         self.PIN_RS = 26 # RS pin of LCD
@@ -43,13 +63,13 @@ class LcdThread(Process):
         self.DEF_MSG_LEN = 10 # the default space allocated for displaying a message on LCD
 
         self.PIN_LCD_BACKLIGHT = 20 # backlight pin for LCD
+        # the Adafruit LCD object
         self.lcd = Adafruit_CharLCD(self.PIN_RS, self.PIN_E,self. PIN_DB[0], self.PIN_DB[1], self.PIN_DB[2], self.PIN_DB[3], self.LCD_COL_SIZE, self.LCD_ROW_SIZE)
 
-        self.col = self.LCD_COL_SIZE
-        self.row = self.LCD_ROW_SIZE
+        self.curr_screen = []
 
         # fill current screen with empty
-        for i in range(self.col * self.row):
+        for i in range(self.LCD_COL_SIZE * self.LCD_ROW_SIZE):
             self.curr_screen.append(" ")
 
         # turn on the display
@@ -58,33 +78,49 @@ class LcdThread(Process):
             GPIO.setup(PIN_BLT, GPIO.OUT)
             GPIO.output(self.PIN_BLT, 1)
 
-    def run(self):
+    def run(self: '_LcdProc') -> None:
+        ''' The main loop of the process waits for something to print, then prints it '''
         while True:
+            # check for data to print
             data = self.inQueue.get()
+            # start a new thread to print data to LCD
             t = threading.Thread(target=self._write_message, args=(data,))
             t.start()
-            print("looping LCD")
 
-    def _update_osd(self, overlay):
-        ''' update the screen with new overlays.
-        For scrolling text, call multiple times with given data.
+    def _update_osd(self: '_LcdProc', overlay: '[str]') -> None:
+        ''' Display the overlay on the LCD sccreen. Given overrlay which is a list of characters
+        for each position of the lcd screen, Loop through each character, and write to the 
+        correct position in the LCD screen individually.
+
+        REQ: len(overlay) is even
+        REQ: each item in overlay is a single character
         '''
         # only update 
         for i in range(len(overlay)):
             if self.curr_screen[i] != overlay[i]:
-                a = int(i >= self.row)
-                b = i % self.row
+                # do if the current character is different from the overlay character at this position
+                row = int(i >= self.LCD_ROW_SIZE)
+                col = i % self.LCD_ROW_SIZE
                
-                self.lcd.set_cursor(b, a)
+                # set the position of the cursor, and write a character
+                self.lcd.set_cursor(col, row)
                 self.lcd.message(overlay[i])
+                # remember the state of the current screen
                 self.curr_screen[i] = overlay[i]
 
 
-    def _create_osd_layer(self, data, dType):
-        ''' Create an overlay layer given data for the OSD '''
+    def _create_osd_layer(self: '_LcdProc', data: 'str', dType: 'int') -> [str]:
+        ''' Given the data, and a type, return an overlay layer which is a list of 
+        characters in positions corresponding to the position of each pixel. Depending on the type,
+        the characters will be positioned differently. Data can be positioned in any programed position below.
+        
+        REQ: data is a string of characters
+        REQ: dType an int that is handled below 
+        '''
 
         new_screen = []
-        for i in range(self.row * self.col):
+        # clear the screen layer
+        for i in range(self.LCD_ROW_SIZE * self.LCD_COL_SIZE):
             new_screen.append(" ")
 
         if dType == 1:
@@ -105,15 +141,13 @@ class LcdThread(Process):
                 new_screen[12] == data[0]
                 new_screen[13] == data[1]
 
-        # send command to update screen
-        self._update_osd(new_screen)
         return new_screen
 
-    def _new_message_scroll(self, message, length):
-        ''' (str) -> list of list of str
-        Return a list of list of strings for a full scroll effect
-
-        REQ: len(message) > length
+    def _new_message_scroll(self: '_LcdProc', message: 'str', length: 'int') -> [[str]] :
+        ''' Given a message, create a list of overlays to be displayed on LCD screen.
+        If the message is less than the given length, create ony one layer, or one list
+        of list of characters. Otherwise, create enough layers for there to be a full loop 
+        cycle of the string printed.
         '''
         full_scroll_arr = [] # contains list of list of strings for full scroll
         lcd_arr = [] # contains the current scroll
@@ -150,14 +184,16 @@ class LcdThread(Process):
         return full_scroll_arr
 
 
-    def _clear(self):
-        ''' clear the lcd '''
+    def _clear(self: '_LcdProc') -> None:
+        ''' Clear the LCD screen, along with the overlay in memory. '''
         self.lcd.clear()
         # clear screen in memory
-        for i in range(self.col * self.row):
+        for i in range(self.LCD_COL_SIZE * self.LCD_ROW_SIZE):
             self.curr_screen[i] = " "
 
-    def _write_message(self, message):
+    def _write_message(self: '_LcdProc', message: 'str') -> None:
+        ''' Given a message, write the message to screen. '''
+
         message_layers = self._new_message_scroll(message, 10)
         for i in range(len(message_layers)):
             start = time.time()

@@ -4,6 +4,7 @@ import os
 import glob
 import time
 from bluetooth import *
+from Const import *
 from multiprocessing import Process
 from multiprocessing import Queue
 import threading
@@ -12,8 +13,60 @@ import queue
 #os.system('modprobe w1-gpio')
 #os.system('modprobe w1-therm')
 
-class btThread(Process):
 
+PARCEL = [True, "BT"] # for debugging
+
+class BtObj():
+    def __init__(self):
+        self.inQueue = Queue()
+        self.outQueue = Queue()
+
+        self._qL[self.outQueue, self.inQueue]
+        self.dataQueue = queue.Queue() # stores data received from the connected device
+        self.isConnected = False
+        self._btProc = None
+        # start the bluetooth process
+        self._startBtProc()
+
+        # start the infinite loop checking process signals
+        t = threading.Thread(target=self._keepSync)
+        t.start()
+
+    def _startBtProc(self: "BtObj") -> None:
+        ''' Start the bluetooth thread if it is not already started '''
+
+        if (self._btProc == None or not self._btProc.is_alive()):
+            self._btProc = BtProc(self._qL)
+            self._btProc.start()
+
+    def send(self: 'BtObj', msg: 'str') -> None:
+        ''' Send a message via bluetooth.
+        TODO return result (fail or success)
+        '''
+        self.outQueue.put([MESSAGE, msg])
+
+    def _keepSync(self: 'BtObj') -> None:
+        ''' Process all signals from the bluetooth process '''
+        data = self.inQueue.get()
+        if (data == BTCONNECTED):
+            self.isConnected = True
+        elif (data == BT_DISCONNECTED):
+            self.isConnected = False
+            # kill the process
+            
+            # start the process again
+            self._startBtProc()
+
+        else:
+            # not a signal, put to read later
+            self.dataQueue.put(data)
+        
+
+    
+        
+class BtProc(Process):
+    ''' The bluetooth process waits for a connection to,
+    and maintains a connection to the device. '''
 
     def __init__(self, queues):
         Process.__init__(self, name="BT")
@@ -38,9 +91,9 @@ class btThread(Process):
         self.client_sock, self.client_info = self.server_sock.accept()
 
         print("Accepted connection from " + str(self.client_info))
-        self.messagingQueue.put("BTCONNECTED")
+        self.messagingQueue.put(BT_CONNECTED)
 
-    def _listenInp(self):
+    def listenToDevice(self):
 
         while True:
             print("waiting...")
@@ -74,24 +127,32 @@ class btThread(Process):
                 self.server_sock.close()
                 break
         print("bt thread ends")
+        self.outQueue.put(BT_DISCONNECTED) # bluetooth ends, signal
         return
 
-    def _send_message(self, msg):
-        self.client_sock.send(str.encode(msg))
+    def _send_message(self: 'BtProc', msg: 'str') -> None:
+        self.client_sock.send(str.encode(msg)) # send a message to the device
 
     def run(self):
+        while True:
+            # read signals from the bluetooth object (parent)
+            data = self.inQueue.get()
+            # process the signal
+            self._process_command(data)
 
-       
+    def _process_command(self: 'BtProc', data: '(int, str)') -> None:
+        ''' Process the command received from the BT object.
+        The command could be a status getter, or a request to write
+        to connected device.
+        '''
+        cType = data[0]
+        msg = data[1]
 
-    def _process_command(self, cmd):
-        if ("R_BT_" in cmd):
-            print("GOT COMMAND DONT KNOW WHAT TO DO")
+        if (cType == MESSAGE):
+            self._send_message(msg)
         else:
-            self.messagingQueue.put(cmd)
+          dbug(PARCEL, "received : (" + str(cType) + ", " + str(msg)")")  
         
         print("command is " + cmd)
 
-
-class BComm():
-    def __init__(self):
 

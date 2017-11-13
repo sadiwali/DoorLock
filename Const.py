@@ -1,7 +1,15 @@
 # LOCKING
-AUTO_LOCK = "autolock"
-DO_LOCK = "lock"
-DO_UNLOCK = "dounlock"
-GET_LOCK_STATUS = "getlockstatuts"
-ST_LOCKED = "statuslocked"
-ST_UNLOCKED = "6"
+AUTO_LOCK = 'c1'
+DO_LOCK = 'c2'
+DO_UNLOCK = 'c3'
+GET_LOCK_STATUS = 'c4'
+ST_LOCKED = 'c5'
+ST_UNLOCKED = 'c6'
+
+# BT command types
+MESSAGE = 'c7'
+GET_VAR = 'c8'
+SET_VAR = 'c9'
+
+BT_CONNECTED = 'c10'
+BT_DISCONNECTED = 'c11'

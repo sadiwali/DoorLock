@@ -8,7 +8,7 @@ def dbug(PARCEL: '[bool, str]', msg: 'obj') -> None:
          PARCEL contains the debug condition and TAG
 
     '''
-    DEBUG = PARCEL[0]
-    TAG = PARCEL[1]
+    DEBUG = PARCEL[0] # to enable/disable debugging
+    TAG = PARCEL[1] # the TAG of the class printing the debug statements
     if (DEBUG):
         print("dbug [" + str(time.time()) + "s]: "  + TAG + ": " + str(msg))

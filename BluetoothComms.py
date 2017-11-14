@@ -7,9 +7,11 @@ from bluetooth import *
 from Const import *
 from multiprocessing import Process
 from multiprocessing import Queue
+from dbug import *
 import threading
 import logging
 import queue
+
 #os.system('modprobe w1-gpio')
 #os.system('modprobe w1-therm')
 
@@ -18,10 +20,10 @@ PARCEL = [True, "BT"] # for debugging
 
 class BtObj():
     def __init__(self):
-        self.inQueue = Queue()
-        self.outQueue = Queue()
+        self.inQueue = Queue() # to read from
+        self.outQueue = Queue() # to write to
 
-        self._qL[self.outQueue, self.inQueue]
+        self._qL = [self.outQueue, self.inQueue]
         self.dataQueue = queue.Queue() # stores data received from the connected device
         self.isConnected = False
         self._btProc = None
@@ -38,6 +40,7 @@ class BtObj():
         if (self._btProc == None or not self._btProc.is_alive()):
             self._btProc = BtProc(self._qL)
             self._btProc.start()
+            pass
 
     def send(self: 'BtObj', msg: 'str') -> None:
         ''' Send a message via bluetooth.
@@ -47,19 +50,21 @@ class BtObj():
 
     def _keepSync(self: 'BtObj') -> None:
         ''' Process all signals from the bluetooth process '''
-        data = self.inQueue.get()
-        if (data == BTCONNECTED):
-            self.isConnected = True
-        elif (data == BT_DISCONNECTED):
-            self.isConnected = False
-            # kill the process
-            
-            # start the process again
-            self._startBtProc()
+        while True:
+            data = self.inQueue.get()
+            if (data == BT_CONNECTED):
+                self.isConnected = True
+            elif (data == BT_DISCONNECTED):
+                self.isConnected = False
+                # kill the process
+                
+                # start the process again
+                self._startBtProc()
 
-        else:
-            # not a signal, put to read later
-            self.dataQueue.put(data)
+            else:
+                dbug(PARCEL, "putting: " + data)
+                # not a signal, put to read later
+                self.dataQueue.put(data)
         
 
     
@@ -83,50 +88,58 @@ class BtProc(Process):
 
         self.uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 
+        t = threading.Thread(target=self._initConnection)
+        t.start()      
+
+    def _initConnection(self):
         advertise_service(self.server_sock, "CircleBot", service_id=self.uuid,
                         service_classes=[self.uuid, SERIAL_PORT_CLASS],
                         profiles=[SERIAL_PORT_PROFILE])
 
-        print("Waiting for connection on RFCOMM channel " + str(self.port))
+        dbug(PARCEL, "Waiting for connection on RFCOMM channel " + str(self.port))
         self.client_sock, self.client_info = self.server_sock.accept()
 
-        print("Accepted connection from " + str(self.client_info))
-        self.messagingQueue.put(BT_CONNECTED)
+        dbug(PARCEL, "Accepted connection from " + str(self.client_info))
+        self.outQueue.put(BT_CONNECTED)
+        self.listenToDevice()
+        return
 
     def listenToDevice(self):
 
         while True:
-            print("waiting...")
+            dbug(PARCEL, "waiting...")
 
             try:
                 data = self.client_sock.recv(1024)
                 data = data.decode("utf-8")
 
                 if len(data) == 0:
-                    print('zero len data')
+                    dbug(PARCEL, 'zero len data')
                     break
-                print("received: " + str(data))
-                self.messagingQueue.put(str(data))
+                dbug(PARCEL, "received: " + data)
+                self.outQueue.put(str(data))
 
                 msgToSend = "relay: " + data
+                # send back to connected device
                 self._send_message(msgToSend)
 
-                print("sending: " + msgToSend)
+                dbug(PARCEL, "sending back: " + msgToSend)
 
             except IOError:
-                print("Disconnected");
+                dbug(PARCEL, "Disconnected");
                 break
             except KeyboardInterrupt:
-                print("disconnected")
+                dbug(PARCEL, "disconnected")
                 self.client_sock.close()
                 self.server_sock.close()
-                print("all done")
+                dbug(PARCEL, "all done")
                 break
             except:
+                dbug(PARCEL, "whats wrong")
                 self.client_sock.close()
                 self.server_sock.close()
                 break
-        print("bt thread ends")
+        dbug(PARCEL, "bt thread ends")
         self.outQueue.put(BT_DISCONNECTED) # bluetooth ends, signal
         return
 
@@ -151,8 +164,8 @@ class BtProc(Process):
         if (cType == MESSAGE):
             self._send_message(msg)
         else:
-          dbug(PARCEL, "received : (" + str(cType) + ", " + str(msg)")")  
+          dbug(PARCEL, "received : (" + str(cType) + ", " + str(msg)+")")  
         
-        print("command is " + cmd)
+        dbug(PARCEL, "command is " + cmd)
 
 

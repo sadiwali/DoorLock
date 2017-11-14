@@ -20,7 +20,7 @@ class Lock():
 
         self.lThread = None # the lock thread
         self._startLockThread()
-
+        
         # assume the lock is unlocked by default
         self.locked = False
 
@@ -76,7 +76,7 @@ class _lockThread(threading.Thread):
         self.locked = False
         # this thread is used to move the servo
         self.servoMovementThread = None
-
+        self.lastUnlockTime = 0
         self.inQueue = queues[0] # to read from
         self.outQueue = queues[1] # to write to
         # lock the lock by default
@@ -97,8 +97,8 @@ class _lockThread(threading.Thread):
         that time has passed 
         '''
         time.sleep(sleepTime)
-        #inQueue.put(AUTO_LOCK) # signal to the locker thread, autolocker has waited time for auto _lockThread
-        self._lock()
+        if ((time.time() - self.lastUnlockTime) > sleepTime):
+            self._lock()
         return
 
     def _moveServoThread(self: '_lockThread', percentage: 'float') -> None:
@@ -136,8 +136,9 @@ class _lockThread(threading.Thread):
             self._write_back(ST_UNLOCKED)
             self.locked = False
             # start the countdown to auto lock
-            t = threading.Thread(target=self._auto_lock_subroutine, args=(5, self.inQueue,))
+            t = threading.Thread(target=self._auto_lock_subroutine, args=(6, self.inQueue,))
             t.start()
+            self.lastUnlockTime = time.time()
         else:
             dbug(PARCEL, "already unlocked")
 
@@ -145,12 +146,14 @@ class _lockThread(threading.Thread):
         # lock if unlocked
         if (not self.locked):
             dbug(PARCEL, "locked")
-            self._moveServo(2.5)
+            self._moveServo(0)
             # signal back to parent obj 
             self._write_back(ST_LOCKED)
             self.locked = True
+
         else:
             dbug(PARCEL, "already locked")
+
 
     def _write_back(self: '_lockThread', msg: 'str') -> None:
         self.outQueue.put(msg)     

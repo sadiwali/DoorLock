@@ -19,14 +19,16 @@ class LcdObj():
         self._qL = [self.outQueue, self.inQueue]
         self._procLcd = None
 
+        self._startLcdProc()
         # start the sync thread
-        syncThread = threadng.Thread(target=self._keepSync)
+        syncThread = threading.Thread(target=self._keepSync)
         syncThread.start()
 
     def _startLcdProc(self):
         ''' Start the process if does not exist, or dead '''
         if (self._procLcd == None or not self._procLcd.is_alive()):
             # if first time load, or process is dead
+            dbug(PARCEL, "LCD process starting")
             self._procLcd = _LcdProc(self._qL)
             self._procLcd.start()
 
@@ -38,7 +40,7 @@ class LcdObj():
             print("LCD sent: " + str(data))
             # LCD should not send back data
 
-    def write(self, data: 'str') -> None:
+    def print(self, data: 'str') -> None:
         ''' Write a message to the LCD screen '''
         self.outQueue.put(data)
 

@@ -1,11 +1,14 @@
 
-from Lcd import LcdThread
+from Lcd import LcdObj
 from Locker import Lock
+from BluetoothComms import BtObj
 from Const import *
 import threading
 import time
 import queue
 from multiprocessing import Queue
+from dbug import *
+PARCEL = [True, "prog"]
 
 
 inpQueue = queue.Queue() # not multiprocessing queue
@@ -16,14 +19,16 @@ def inp(q):
         if (uInp != ""):
             q.put(uInp)
 
-
-
-inQueue = Queue()
-outQueue = Queue()
-qL = [outQueue, inQueue]
-
-lcd = LcdThread(qL)
-lcd.start()
+def btListenThread():
+    dbug(PARCEL, "starts listening in prog")
+    while True:
+        data = bt.dataQueue.get()
+        dbug(PARCEL, data)
+        lcd.print(data)
+        if (data == "DO_LOCK"):
+            locker.lock()
+        elif (data == "DO_UNLOCK"):
+            locker.unlock()
 
 
 
@@ -32,8 +37,11 @@ a.daemon = True
 a.start()
 
 locker = Lock()
+bt = BtObj()
+t = threading.Thread(target=btListenThread)
+t.start()
 
-
+lcd = LcdObj()
 
 print("main thread loop starts")
 while True:   
@@ -48,7 +56,11 @@ while True:
         pass
     else:
         # print to lcd
-        outQueue.put(data)
+        lcd.print(data)
+
+
+
+
 
 
         

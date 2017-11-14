@@ -36,10 +36,11 @@ class BtObj():
 
     def _startBtProc(self: "BtObj") -> None:
         ''' Start the bluetooth thread if it is not already started '''
-
-        if (self._btProc == None or not self._btProc.is_alive()):
+        dbug(PARCEL, "starting bt THread")
+        if (self._btProc == None):
             self._btProc = BtProc(self._qL)
             self._btProc.start()
+
             pass
 
     def send(self: 'BtObj', msg: 'str') -> None:
@@ -57,7 +58,8 @@ class BtObj():
             elif (data == BT_DISCONNECTED):
                 self.isConnected = False
                 # kill the process
-                
+                dbug(PARCEL, "ends bt thread, start another one pls")
+                self._btProc.join()
                 # start the process again
                 self._startBtProc()
 
@@ -78,7 +80,7 @@ class BtProc(Process):
       
         self.inQueue = queues[0] # reads from this queue
         self.outQueue = queues[1] # writes to this queue
-
+        self.cancelled = False
         self.server_sock = BluetoothSocket(RFCOMM)
         self.server_sock.bind(("", PORT_ANY))
         self.server_sock.listen(1)
@@ -140,18 +142,24 @@ class BtProc(Process):
                 self.server_sock.close()
                 break
         dbug(PARCEL, "bt thread ends")
+
         self.outQueue.put(BT_DISCONNECTED) # bluetooth ends, signal
+        self.cancelled = True
+        dbug(PARCEL, "END BT PROC: " + str(self.cancelled))
+  
         return
 
     def _send_message(self: 'BtProc', msg: 'str') -> None:
         self.client_sock.send(str.encode(msg)) # send a message to the device
 
     def run(self):
-        while True:
+        dbug(PARCEL, "Started...........")
+        while True and not self.cancelled:
             # read signals from the bluetooth object (parent)
             data = self.inQueue.get()
             # process the signal
             self._process_command(data)
+        dbug(PARCEL, "CANCELLED.........")
 
     def _process_command(self: 'BtProc', data: '(int, str)') -> None:
         ''' Process the command received from the BT object.

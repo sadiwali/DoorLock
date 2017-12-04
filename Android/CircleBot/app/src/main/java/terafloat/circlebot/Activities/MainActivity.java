@@ -1,14 +1,17 @@
 package terafloat.circlebot.Activities;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,7 +23,7 @@ import terafloat.circlebot.Constants.Const;
 import terafloat.circlebot.Exceptions.NoConnectionException;
 import terafloat.circlebot.R;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     // tag for debugger
     private static final String TAG = "MainActivity";
 
@@ -29,7 +32,11 @@ public class MainActivity extends AppCompatActivity {
     private Button btnDisconnect;
     private Button btnSendHello;
     private Button btnMore;
+    private Button btnLock;
+    private Button btnUnlock;
     private TextView lblStatus;
+
+    private boolean isLocked = false;
 
     // variables
 
@@ -50,8 +57,8 @@ public class MainActivity extends AppCompatActivity {
                     byte[] fixedLenBuf = Arrays.copyOfRange(readBuf, 0, msg.arg1);
                     // convert to string
                     String string = new String(fixedLenBuf);
-                    Log.i(TAG, "Received message: " + string);
-                    Toast.makeText(getApplicationContext(), string, Toast.LENGTH_SHORT).show();
+                    // received a string message, process it
+                    processMessage(string);
                     break;
                 case BluetoothConnection.MESSAGE_SENT:
                     readBuf = (byte[])msg.obj;
@@ -65,10 +72,12 @@ public class MainActivity extends AppCompatActivity {
                 case BluetoothConnection.CONNECTION_STARTED:
                     Log.i(TAG, "Connection started...");
                     lblStatus.setText("Connected.");
+                    btnUnlock.setText("UNLOCK");
                     break;
                 case BluetoothConnection.CONNECTION_DISCONNECT:
                     Log.i(TAG, "Connection ended...");
                     lblStatus.setText("Disconnected.");
+                    btnUnlock.setText("DISCONNECTED");
                     break;
                 case BluetoothConnection.COULD_NOT_CONNECT:
                     // did not start the connected thread
@@ -94,21 +103,52 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Process a string received from the RPI
+     * @param message is the string message received.
+     */
+    private void processMessage(String message) {
+        Log.i(TAG, "Received message: " + message);
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+
+
+        if (message.equalsIgnoreCase(Const.ACT_LOCKED)) {
+            // door was locked
+            isLocked = true;
+            btnUnlock.setText("UNLOCK");
+
+
+        } else if (message.equalsIgnoreCase(Const.ACT_UNLOCKED)) {
+            // door was just unlocked
+            isLocked = false;
+            btnUnlock.setText("LOCK");
+        }
+    }
+
+    /**
      * Update the displays in activity.
      */
     private void updateScreens() {
         if (BluetoothConnection.getInstance().isConnected()) {
             lblStatus.setText("Connected.");
-
         } else {
             lblStatus.setText("Disconnected.");
         }
+
+
     }
 
+    /**
+     * Determine if status is locked or unlocked.
+     * @return the status of the lock.
+     */
+    private boolean getIsLocked() {
+        return isLocked;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_main);
         init(); // initialize the program
 
@@ -121,6 +161,8 @@ public class MainActivity extends AppCompatActivity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivity(enableBtIntent); // ask the user for bluetooth enabling
         }
+
+
 
 
     }
@@ -158,18 +200,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        this.btnSendHello = (Button) findViewById(R.id.btnSendData);
-        this.btnSendHello.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    BluetoothConnection.getInstance().sendMessage("hello cats");
-                } catch (NoConnectionException e) {
-                    Log.i(TAG, "Message not sent because device disconnected.");
-                }
-            }
-        });
-
         this.btnMore = (Button) findViewById(R.id.btnMore);
         this.btnMore.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -180,6 +210,32 @@ public class MainActivity extends AppCompatActivity {
         });
 
         this.lblStatus = (TextView) findViewById(R.id.lblConnectStatus);
+
+
+        this.btnUnlock = (Button) findViewById(R.id.btnUnlock);
+        btnUnlock.setText("DISCONNECTED");
+
+        this.btnUnlock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                   lockUnlockFcn();
+                } catch (NoConnectionException e) {
+                    Log.i(TAG, "Message not sent because device disconnected.");
+                }
+            }
+        });
+    }
+
+    private void lockUnlockFcn() throws NoConnectionException {
+
+        if (isLocked) {
+            // locked, so unlock
+            BluetoothConnection.getInstance().sendMessage("DO_UNLOCK");
+        } else {
+            // unlocked, so lock
+            BluetoothConnection.getInstance().sendMessage("DO_LOCK");
+        }
 
     }
 

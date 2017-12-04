@@ -146,6 +146,10 @@ public class BluetoothConnection extends Application {
         }
     }
 
+    public boolean isLocked() {
+        return false;
+    }
+
     // Create a BroadcastReceiver for actions
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {

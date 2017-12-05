@@ -10,6 +10,9 @@ public final class Const {
     public static final String ACT_UNLOCKED = "1231";
     public static final String ACT_LOCKED = "12231";
 
+    public static final String DO_LOCK = "23";
+    public static final String DO_UNLOCK = "123";
+
 
 
 

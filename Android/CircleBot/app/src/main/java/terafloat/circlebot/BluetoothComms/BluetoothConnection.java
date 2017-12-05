@@ -91,11 +91,7 @@ public class BluetoothConnection extends Application {
      * @return true if capable, false otherwise.
      */
     public boolean isCapable() {
-        if (this.mBluetoothAdapter == null) {
-            return false;
-        } else {
-            return true;
-        }
+        return this.mBluetoothAdapter != null;
     }
 
     /**
@@ -126,11 +122,7 @@ public class BluetoothConnection extends Application {
         if (this.mConnectedThread == null) {
             return false;
         } else {
-            if (this.mConnectedThread.getState().equals(Thread.State.TERMINATED)) {
-                return false;
-            } else {
-                return true;
-            }
+            return !this.mConnectedThread.getState().equals(Thread.State.TERMINATED);
         }
     }
 
@@ -144,10 +136,6 @@ public class BluetoothConnection extends Application {
         } else {
             throw new NoConnectionException("Not connected to device.");
         }
-    }
-
-    public boolean isLocked() {
-        return false;
     }
 
     // Create a BroadcastReceiver for actions

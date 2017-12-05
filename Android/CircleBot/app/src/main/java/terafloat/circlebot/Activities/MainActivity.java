@@ -4,10 +4,9 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -71,13 +70,11 @@ public class MainActivity extends Activity {
                     break;
                 case BluetoothConnection.CONNECTION_STARTED:
                     Log.i(TAG, "Connection started...");
-                    lblStatus.setText("Connected.");
-                    btnUnlock.setText("UNLOCK");
+                    changeModeConnected();
                     break;
                 case BluetoothConnection.CONNECTION_DISCONNECT:
                     Log.i(TAG, "Connection ended...");
-                    lblStatus.setText("Disconnected.");
-                    btnUnlock.setText("DISCONNECTED");
+                    changeModeDisconnected();
                     break;
                 case BluetoothConnection.COULD_NOT_CONNECT:
                     // did not start the connected thread
@@ -89,11 +86,24 @@ public class MainActivity extends Activity {
         }
     };
 
+    private void changeModeDisconnected() {
+        lblStatus.setText("Disconnected.");
+        btnUnlock.setText("DISCONNECTED");
+        btnUnlock.getBackground().setColorFilter(getResources()
+                .getColor(R.color.colorDisabled), PorterDuff.Mode.SRC_ATOP);
+    }
+
+    private void changeModeConnected() {
+        lblStatus.setText("Connected.");
+        btnUnlock.setText("UNLOCK");
+    }
+
 
     @Override
     public void onPause() {
         super.onPause();
     }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -112,15 +122,21 @@ public class MainActivity extends Activity {
 
 
         if (message.equalsIgnoreCase(Const.ACT_LOCKED)) {
-            // door was locked
+            // door was locked,
             isLocked = true;
             btnUnlock.setText("UNLOCK");
+            // color will be blue for safe
+            btnUnlock.getBackground().setColorFilter(getResources()
+                    .getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
 
 
         } else if (message.equalsIgnoreCase(Const.ACT_UNLOCKED)) {
             // door was just unlocked
             isLocked = false;
             btnUnlock.setText("LOCK");
+            // color will be red for danger
+            btnUnlock.getBackground().setColorFilter(getResources()
+                    .getColor(R.color.colorAccent), PorterDuff.Mode.SRC_ATOP);
         }
     }
 
@@ -133,17 +149,9 @@ public class MainActivity extends Activity {
         } else {
             lblStatus.setText("Disconnected.");
         }
-
-
     }
 
-    /**
-     * Determine if status is locked or unlocked.
-     * @return the status of the lock.
-     */
-    private boolean getIsLocked() {
-        return isLocked;
-    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(TAG, "onCreate");
@@ -161,10 +169,6 @@ public class MainActivity extends Activity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivity(enableBtIntent); // ask the user for bluetooth enabling
         }
-
-
-
-
     }
 
     @Override
@@ -183,7 +187,7 @@ public class MainActivity extends Activity {
     private void init() {
 
         // set up interaction
-        this.btnConnect = (Button) findViewById(R.id.btnConnect);
+        this.btnConnect = findViewById(R.id.btnConnect);
         this.btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -191,7 +195,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        this.btnDisconnect = (Button) findViewById(R.id.btnDisconnect);
+        this.btnDisconnect = findViewById(R.id.btnDisconnect);
         this.btnDisconnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -200,7 +204,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        this.btnMore = (Button) findViewById(R.id.btnMore);
+        this.btnMore = findViewById(R.id.btnMore);
         this.btnMore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -209,12 +213,12 @@ public class MainActivity extends Activity {
             }
         });
 
-        this.lblStatus = (TextView) findViewById(R.id.lblConnectStatus);
+        this.lblStatus = findViewById(R.id.lblConnectStatus);
 
 
-        this.btnUnlock = (Button) findViewById(R.id.btnUnlock);
+        this.btnUnlock = findViewById(R.id.btnUnlock);
         btnUnlock.setText("DISCONNECTED");
-
+        changeModeDisconnected();
         this.btnUnlock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -227,6 +231,10 @@ public class MainActivity extends Activity {
         });
     }
 
+    /**
+     * Toggle for the lock and unlock button
+     * @throws NoConnectionException
+     */
     private void lockUnlockFcn() throws NoConnectionException {
 
         if (isLocked) {
@@ -236,7 +244,6 @@ public class MainActivity extends Activity {
             // unlocked, so lock
             BluetoothConnection.getInstance().sendMessage("DO_LOCK");
         }
-
     }
 
     /**

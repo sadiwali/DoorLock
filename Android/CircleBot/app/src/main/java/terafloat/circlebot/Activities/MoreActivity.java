@@ -13,7 +13,6 @@ import android.widget.Toast;
 import java.util.Arrays;
 
 import terafloat.circlebot.BluetoothComms.BluetoothConnection;
-import terafloat.circlebot.Constants.Const;
 import terafloat.circlebot.Exceptions.NoConnectionException;
 import terafloat.circlebot.R;
 
@@ -61,6 +60,7 @@ public class MoreActivity extends AppCompatActivity {
         setContentView(R.layout.activity_more);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+        BluetoothConnection.getInstance().installHandler(mHandler);
         BluetoothConnection.getInstance().installHandler(mHandler);
 
 

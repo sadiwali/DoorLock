@@ -15,7 +15,7 @@
             android:layout_height="78dp"
             android:layout_margin="0dp"
             android:background="@drawable/btnripple_2"
-            android:backgroundTint="@color/colorAccent"
+            android:backgroundTint="@color/colorDisabled"
             android:elevation="0dp"
             android:fontFamily="sans-serif"
             android:lineSpacingExtra="24sp"

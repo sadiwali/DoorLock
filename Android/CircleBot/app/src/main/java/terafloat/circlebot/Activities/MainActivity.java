@@ -4,7 +4,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import android.graphics.PorterDuff;
+=======
+>>>>>>> parent of ac9ecc2... Modifications to Android App
 =======
 >>>>>>> parent of ac9ecc2... Modifications to Android App
 import android.os.Handler;
@@ -79,6 +82,9 @@ public class MainActivity extends AppCompatActivity {
                 case BluetoothConnection.CONNECTION_DISCONNECT:
                     Log.i(TAG, "Connection ended...");
                     lblStatus.setText("Disconnected.");
+<<<<<<< HEAD
+>>>>>>> parent of ac9ecc2... Modifications to Android App
+=======
 >>>>>>> parent of ac9ecc2... Modifications to Android App
                     break;
                 case BluetoothConnection.COULD_NOT_CONNECT:
@@ -119,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
 <<<<<<< HEAD
+<<<<<<< HEAD
      * Process a string received from the RPI
      * @param message is the string message received.
      */
@@ -149,6 +156,8 @@ public class MainActivity extends AppCompatActivity {
     /**
 =======
 >>>>>>> parent of ac9ecc2... Modifications to Android App
+=======
+>>>>>>> parent of ac9ecc2... Modifications to Android App
      * Update the displays in activity.
      */
     private void updateScreens() {
@@ -161,7 +170,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> parent of ac9ecc2... Modifications to Android App
 =======
 >>>>>>> parent of ac9ecc2... Modifications to Android App
     @Override
@@ -184,6 +196,9 @@ public class MainActivity extends AppCompatActivity {
 =======
 
 
+<<<<<<< HEAD
+>>>>>>> parent of ac9ecc2... Modifications to Android App
+=======
 >>>>>>> parent of ac9ecc2... Modifications to Android App
     }
 
@@ -221,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         this.btnMore = findViewById(R.id.btnMore);
         this.btnMore.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -241,6 +257,10 @@ public class MainActivity extends AppCompatActivity {
         this.btnSendHello = (Button) findViewById(R.id.btnSendData);
         this.btnSendHello.setOnClickListener(new View.OnClickListener() {
 >>>>>>> parent of ac9ecc2... Modifications to Android App
+=======
+        this.btnSendHello = (Button) findViewById(R.id.btnSendData);
+        this.btnSendHello.setOnClickListener(new View.OnClickListener() {
+>>>>>>> parent of ac9ecc2... Modifications to Android App
             @Override
             public void onClick(View v) {
                 try {
@@ -251,6 +271,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     /**
      * Toggle for the lock and unlock button
@@ -275,6 +296,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+=======
+        this.btnMore = (Button) findViewById(R.id.btnMore);
+        this.btnMore.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent moreIntent = new Intent(getApplicationContext(), MoreActivity.class);
+                startActivity(moreIntent);
+            }
+        });
+
+>>>>>>> parent of ac9ecc2... Modifications to Android App
         this.lblStatus = (TextView) findViewById(R.id.lblConnectStatus);
 
 >>>>>>> parent of ac9ecc2... Modifications to Android App

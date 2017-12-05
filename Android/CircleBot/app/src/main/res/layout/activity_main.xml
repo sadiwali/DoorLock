@@ -9,6 +9,7 @@
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         <Button
             android:id="@+id/btnUnlock"
             style="@style/Widget.AppCompat.Button.Borderless"
@@ -34,6 +35,8 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/scrlView" />
 =======
+=======
+>>>>>>> parent of ac9ecc2... Modifications to Android App
     <TextView
         android:id="@+id/lblConnectStatus"
         android:layout_width="0dp"
@@ -47,6 +50,9 @@
         app:layout_constraintTop_toBottomOf="@+id/btnDisconnect"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp" />
+<<<<<<< HEAD
+>>>>>>> parent of ac9ecc2... Modifications to Android App
+=======
 >>>>>>> parent of ac9ecc2... Modifications to Android App
 
     <Button

@@ -6,6 +6,7 @@ package terafloat.circlebot.Constants;
 
 public final class Const {
 
+<<<<<<< HEAD
     public static final String VAR_REQ = "REQVAR1";
     public static final String ACT_UNLOCKED = "1231";
     public static final String ACT_LOCKED = "12231";
@@ -13,6 +14,8 @@ public final class Const {
     public static final String DO_LOCK = "23";
     public static final String DO_UNLOCK = "123";
 
+=======
+>>>>>>> parent of ac9ecc2... Modifications to Android App
 
 
 

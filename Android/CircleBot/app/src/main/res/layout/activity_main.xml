@@ -8,8 +8,6 @@
     tools:context="terafloat.circlebot.Activities.MainActivity">
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
         <Button
             android:id="@+id/btnUnlock"
             style="@style/Widget.AppCompat.Button.Borderless"
@@ -34,102 +32,95 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/scrlView" />
-=======
-=======
->>>>>>> parent of ac9ecc2... Modifications to Android App
-    <TextView
-        android:id="@+id/lblConnectStatus"
-        android:layout_width="0dp"
-        android:layout_height="17dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="14dp"
-        app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintLeft_toLeftOf="@+id/btnDisconnect"
-        app:layout_constraintRight_toRightOf="@+id/btnDisconnect"
-        app:layout_constraintTop_toBottomOf="@+id/btnDisconnect"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
-<<<<<<< HEAD
->>>>>>> parent of ac9ecc2... Modifications to Android App
-=======
->>>>>>> parent of ac9ecc2... Modifications to Android App
 
-    <Button
-        android:id="@+id/btnConnect"
-        style="@android:style/Widget.DeviceDefault.Button.Borderless"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="9dp"
-        android:background="@drawable/btnripple_1"
-        android:text="@string/connect"
-        android:textAlignment="textEnd"
-        android:textAppearance="@style/TextAppearance.AppCompat.Button"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintLeft_toLeftOf="@+id/btnMore"
-        app:layout_constraintRight_toRightOf="@+id/btnMore"
-        app:layout_constraintTop_toBottomOf="@+id/btnMore" />
+        <ScrollView
+            android:id="@+id/scrlView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="0dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:scrollbars="none"
+            app:layout_constraintBottom_toTopOf="@+id/btnUnlock"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="spread">
 
-    <Button
-        android:id="@+id/btnMore"
-        style="@style/Widget.AppCompat.Button.Borderless"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="9dp"
-        android:background="@drawable/btnripple_1"
-        android:text="@string/more"
-        android:textAlignment="textEnd"
-        android:textAppearance="@style/TextAppearance.AppCompat.Button"
-        app:layout_constraintRight_toRightOf="@+id/btnSendData"
-        app:layout_constraintTop_toBottomOf="@+id/btnSendData"
-        app:layout_constraintLeft_toLeftOf="@+id/btnSendData"
-        app:layout_constraintHorizontal_bias="0.0" />
 
-    <Button
-        android:id="@+id/btnDisconnect"
-        style="@style/Widget.AppCompat.Button.Borderless"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="11dp"
-        android:background="@drawable/btnripple_1"
-        android:text="@string/disconnect"
-        android:textAlignment="textEnd"
-        android:textAppearance="@style/TextAppearance.AppCompat.Button"
-        app:layout_constraintRight_toRightOf="@+id/btnConnect"
-        app:layout_constraintTop_toBottomOf="@+id/btnConnect"
-        app:layout_constraintLeft_toLeftOf="@+id/btnConnect" />
+                <android.support.constraint.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/btnSendData"
-        style="@style/Widget.AppCompat.Button.Borderless"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginTop="42dp"
-        android:background="@drawable/btnripple_1"
-        android:text='Send "Hello"'
-        android:textAlignment="textEnd"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginRight="8dp"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
+                        <Button
+                            android:id="@+id/btnDisconnect"
+                            style="@style/Widget.AppCompat.Button.Borderless"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="10dp"
+                            android:layout_marginLeft="8dp"
+                            android:layout_marginRight="8dp"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/btnripple_1"
+                            android:text="@string/disconnect"
+                            android:textAlignment="textEnd"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                            app:layout_constraintHorizontal_bias="0.222"
+                            app:layout_constraintLeft_toLeftOf="@+id/btnConnect"
+                            app:layout_constraintRight_toRightOf="@+id/btnConnect"
+                            app:layout_constraintTop_toBottomOf="@+id/btnConnect" />
 
-    <TextView
-        android:id="@+id/lblBeta"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:text="Beta 1.0"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp" />
+                        <Button
+                            android:id="@+id/btnMore"
+                            style="@style/Widget.AppCompat.Button.Borderless"
+                            android:layout_width="match_parent"
+                            android:layout_height="80dp"
+                            android:layout_margin="10dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/btnripple_1"
+                            android:text="@string/more"
+                            android:textAlignment="textEnd"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Button
+                            android:id="@+id/btnConnect"
+                            style="@android:style/Widget.DeviceDefault.Button.Borderless"
+                            android:layout_width="match_parent"
+                            android:layout_height="80dp"
+                            android:layout_margin="10dp"
+                            android:layout_marginLeft="8dp"
+                            android:layout_marginRight="8dp"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/btnripple_1"
+                            android:text="@string/connect"
+                            android:textAlignment="textEnd"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Button"
+                            app:layout_constraintHorizontal_bias="0.0"
+                            app:layout_constraintLeft_toLeftOf="@+id/btnMore"
+                            app:layout_constraintRight_toRightOf="@+id/btnMore"
+                            app:layout_constraintTop_toBottomOf="@+id/btnMore" />
+
+                        <TextView
+                            android:id="@+id/lblConnectStatus"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="10dp"
+                            android:layout_marginLeft="8dp"
+                            android:layout_marginRight="8dp"
+                            android:layout_marginTop="8dp"
+                            android:text="Status:"
+                            app:layout_constraintHorizontal_bias="0.222"
+                            app:layout_constraintLeft_toLeftOf="@+id/btnDisconnect"
+                            app:layout_constraintRight_toRightOf="@+id/btnDisconnect"
+                            app:layout_constraintTop_toBottomOf="@+id/btnDisconnect" />
+
+                </android.support.constraint.ConstraintLayout>
+
+        </ScrollView>
 
 </android.support.constraint.ConstraintLayout>

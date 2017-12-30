@@ -35,7 +35,7 @@ public class MainActivity extends Activity {
     private Button btnUnlock;
     private TextView lblStatus;
 
-    private boolean isLocked = false;
+    private boolean isLocked = true;
 
     // variables
 
@@ -96,6 +96,8 @@ public class MainActivity extends Activity {
     private void changeModeConnected() {
         lblStatus.setText("Connected.");
         btnUnlock.setText("UNLOCK");
+        btnUnlock.getBackground().setColorFilter(getResources()
+                .getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
     }
 
 
@@ -121,7 +123,7 @@ public class MainActivity extends Activity {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
 
 
-        if (message.equalsIgnoreCase(Const.ACT_LOCKED)) {
+        if (message.equalsIgnoreCase(Const.ST_LOCKED)) {
             // door was locked,
             isLocked = true;
             btnUnlock.setText("UNLOCK");
@@ -130,13 +132,15 @@ public class MainActivity extends Activity {
                     .getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
 
 
-        } else if (message.equalsIgnoreCase(Const.ACT_UNLOCKED)) {
+        } else if (message.equalsIgnoreCase(Const.ST_UNLOCKED)) {
             // door was just unlocked
             isLocked = false;
             btnUnlock.setText("LOCK");
             // color will be red for danger
             btnUnlock.getBackground().setColorFilter(getResources()
                     .getColor(R.color.colorAccent), PorterDuff.Mode.SRC_ATOP);
+        } else {
+            Log.d(TAG, "Received process message: " + message);
         }
     }
 

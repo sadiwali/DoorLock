@@ -79,7 +79,7 @@ MERGED from [com.android.support:support-compat:26.0.0-alpha1] C:\Users\sadiw\.g
 	android:roundIcon
 		ADDED from C:\Users\sadiw\Documents\GitHub\DoorLock\Android\CircleBot\app\src\main\AndroidManifest.xml:14:9-54
 	android:icon
-		ADDED from C:\Users\sadiw\Documents\GitHub\DoorLock\Android\CircleBot\app\src\main\AndroidManifest.xml:12:9-43
+		ADDED from C:\Users\sadiw\Documents\GitHub\DoorLock\Android\CircleBot\app\src\main\AndroidManifest.xml:12:9-49
 	android:allowBackup
 		ADDED from C:\Users\sadiw\Documents\GitHub\DoorLock\Android\CircleBot\app\src\main\AndroidManifest.xml:11:9-35
 	android:theme
